@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TextInput, View, Keyboard, TouchableWithoutFeedback } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 import Input from "../input";
 import React from "react";
 import Button from "../button";
@@ -6,15 +12,79 @@ import Button from "../button";
 export default function FinancialCalculator() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.testingContainer}>
+      <View style={styles.center}>
+        <Text style={styles.title}>Financial Calculator</Text>
         <View style={styles.outer}>
           <Text style={styles.text}>
             To Compute a value, enter values for all other cells and select
             compute button for the target
           </Text>
+          {/* Present Value */}
           <View style={styles.row}>
-            <Input header="Testing" setOnChange={() => {}} />
-            <Button label="Compute" theme="s" />
+            <Input header="Present Val" setOnChange={() => {}} width={200} />
+            <View style={{ marginTop: 15 }}>
+              <Button label="Compute" theme="s" />
+            </View>
+          </View>
+          {/* Rate Value */}
+          <View style={styles.row}>
+            <Input header="Rate" setOnChange={() => {}} width={200} />
+            <View style={{ marginTop: 15 }}>
+              <Button label="Compute" theme="s" />
+            </View>
+          </View>
+          {/* Term Values */}
+          <View>
+            <Text
+              style={{
+                marginTop: 16,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
+              Term:
+            </Text>
+            <View style={[styles.row, { marginTop: 2 }]}>
+              <View
+                style={{ gap: 3, flexDirection: "row", alignItems: "center" }}
+              >
+                <Input header="Years" setOnChange={() => {}} width={80} />
+                <Text
+                  style={{
+                    marginTop: 16,
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  -
+                </Text>
+                <Input header="Months" setOnChange={() => {}} width={80} />
+              </View>
+              <View style={{ marginTop: 15 }}>
+                <Button label="Compute" theme="s" />
+              </View>
+            </View>
+          </View>
+          {/* Mo. +Dep/-Draw Values */}
+          <View style={styles.row}>
+            <Input header="Mo. +Dep/-Draw" setOnChange={() => {}} width={200} />
+            <View style={{ marginTop: 15 }}>
+              <Button label="Compute" theme="s" />
+            </View>
+          </View>
+          {/* Future Value */}
+          <View style={styles.row}>
+            <Input header="Future Val" setOnChange={() => {}} width={200} />
+            <View style={{ marginTop: 15 }}>
+              <Button label="Compute" theme="s" />
+            </View>
+          </View>
+          {/* Bottom Buttons */}
+          <View style={styles.row}>
+            <Button label="Reset" theme="p" />
+            <Button label="Amorl" theme="p" />
+            <Button label="Mode" theme="p" />
+            <Button label="Help" theme="p" />
           </View>
         </View>
       </View>
@@ -23,7 +93,7 @@ export default function FinancialCalculator() {
 }
 
 const styles = StyleSheet.create({
-  testingContainer: {
+  center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -39,5 +109,16 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
   },
-  row: {},
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  title: {
+    fontFamily: "Georgia",
+    fontSize: 24,
+    fontWeight: "bold",
+    paddingBottom: 30,
+  },
 });
