@@ -5,16 +5,18 @@ import {
   View,
   Keyboard,
   TouchableWithoutFeedback,
+  Pressable
 } from "react-native";
 
 type ButtonProps = {
   label: string;
   theme: string;
+  onPress: () => void;
 };
 
 export default function Button(props: ButtonProps) {
   return (
-    <View style={[props.theme === "p" ? styles.primary : styles.secondary]}>
+    <Pressable style={[props.theme === "p" ? styles.primary : styles.secondary]} onPress={props.onPress}>
       <Text
         style={[
           styles.text,
@@ -23,7 +25,7 @@ export default function Button(props: ButtonProps) {
       >
         {props.label}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 

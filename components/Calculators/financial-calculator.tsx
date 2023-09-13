@@ -23,14 +23,14 @@ export default function FinancialCalculator() {
           <View style={styles.row}>
             <Input header="Present Val" setOnChange={() => {}} width={200} />
             <View style={{ marginTop: 15 }}>
-              <Button label="Compute" theme="s" />
+              <Button label="Compute" theme="s" onPress={() => console.log("Pressed")}/>
             </View>
           </View>
           {/* Rate Value */}
           <View style={styles.row}>
             <Input header="Rate" setOnChange={() => {}} width={200} />
             <View style={{ marginTop: 15 }}>
-              <Button label="Compute" theme="s" />
+              <Button label="Compute" theme="s" onPress={() => console.log("Pressed")}/>
             </View>
           </View>
           {/* Term Values */}
@@ -61,7 +61,7 @@ export default function FinancialCalculator() {
                 <Input header="Months" setOnChange={() => {}} width={80} />
               </View>
               <View style={{ marginTop: 15 }}>
-                <Button label="Compute" theme="s" />
+                <Button label="Compute" theme="s" onPress={() => console.log("Pressed")}/>
               </View>
             </View>
           </View>
@@ -69,22 +69,22 @@ export default function FinancialCalculator() {
           <View style={styles.row}>
             <Input header="Mo. +Dep/-Draw" setOnChange={() => {}} width={200} />
             <View style={{ marginTop: 15 }}>
-              <Button label="Compute" theme="s" />
+              <Button label="Compute" theme="s" onPress={() => console.log("Pressed")}/>
             </View>
           </View>
           {/* Future Value */}
           <View style={styles.row}>
             <Input header="Future Val" setOnChange={() => {}} width={200} />
             <View style={{ marginTop: 15 }}>
-              <Button label="Compute" theme="s" />
+              <Button label="Compute" theme="s"onPress={() => console.log("Pressed")} />
             </View>
           </View>
           {/* Bottom Buttons */}
           <View style={styles.row}>
-            <Button label="Reset" theme="p" />
-            <Button label="Amorl" theme="p" />
-            <Button label="Mode" theme="p" />
-            <Button label="Help" theme="p" />
+            <Button label="Reset" theme="p" onPress={() => console.log("Pressed")}/>
+            <Button label="Amort" theme="p" onPress={() => console.log("Pressed")}/>
+            <Button label="Mode" theme="p" onPress={() => console.log("Pressed")}/>
+            <Button label="Help" theme="p" onPress={() => console.log("Pressed")}/>
           </View>
         </View>
       </View>
