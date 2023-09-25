@@ -1,31 +1,30 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Button } from "react-native";
+import "react-native-gesture-handler";
 import FinancialCalculator from "./components/Calculators/financial-calculator";
 import LoanMortgageCalculator from "./components/Calculators/loan_mortgage-calculator";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import CustomDrawer from "./components/customDrawer";
 import HomePage from "./pages/home";
 
 export default function App() {
-
-  const Stack = createNativeStackNavigator();
+  const Drawer = createDrawerNavigator();
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Time Value of Money" component={HomePage} />
-        <Stack.Screen name="Financial Calculator" component={FinancialCalculator} />
-        <Stack.Screen name="Loan Calculator" component={LoanMortgageCalculator} />
-      </Stack.Navigator>
+      <Drawer.Navigator drawerContent={(props) => <CustomDrawer {...props} />}>
+        <Drawer.Screen name="Home" component={HomePage} />
+        <Drawer.Screen name="Financial" component={FinancialCalculator} />
+        <Drawer.Screen name="Loan" component={LoanMortgageCalculator} />
+      </Drawer.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: "#fff",
+//     alignItems: "center",
+//     justifyContent: "center",
+//   },
+// });
