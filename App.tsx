@@ -11,7 +11,10 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Drawer.Navigator drawerContent={(props) => <CustomDrawer {...props} />}>
+      <Drawer.Navigator
+        drawerContent={(props) => <CustomDrawer {...props} />}
+        initialRouteName="Home"
+      >
         <Drawer.Screen name="Home" component={HomePage} />
         <Drawer.Screen name="Financial" component={FinancialCalculator} />
         <Drawer.Screen name="Loan" component={LoanMortgageCalculator} />
