@@ -1,12 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Pressable
-} from "react-native";
+import { StyleSheet, Text, Pressable } from "react-native";
 
 type ButtonProps = {
   label: string;
@@ -14,37 +6,40 @@ type ButtonProps = {
   onPress: () => void;
 };
 
-export default function Button(props: ButtonProps) {
+export default function Button({
+  label,
+  onPress,
+  theme,
+}: ButtonProps) {
   return (
-    <Pressable style={[props.theme === "p" ? styles.primary : styles.secondary]} onPress={props.onPress}>
-      <Text
-        style={[
-          styles.text,
-          { color: props.theme === "p" ? "#ffeb7a" : "#000" },
-        ]}
-      >
-        {props.label}
-      </Text>
+    <Pressable
+      style={[theme === "primary" ? styles.primary : styles.secondary]}
+      onPress={onPress}
+    >
+      <Text style={[styles.text]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   primary: {
-    backgroundColor: "#39592d",
-    borderColor: "#39592d",
+    backgroundColor: "#9AFF9D",
+    borderColor: "#9AFF9D",
     borderWidth: 1,
     borderRadius: 100,
     alignSelf: "center",
   },
   secondary: {
-    backgroundColor: "#b9cef0",
-    borderColor: "black",
+    backgroundColor: "#98A6FF",
+    borderColor: "#98A6FF",
     borderWidth: 1,
     borderRadius: 100,
     alignSelf: "center",
   },
   text: {
     padding: 10,
+    fontSize: 18,
+    color: "#212121",
+    fontWeight: "bold",
   },
 });

@@ -13,12 +13,7 @@ export default function FinancialCalculator() {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.center}>
-        <Text style={styles.title}>Financial Calculator</Text>
         <View style={styles.outer}>
-          <Text style={styles.text}>
-            To Compute a value, enter values for all other cells and select
-            compute button for the target
-          </Text>
           {/* Present Value */}
           <View style={styles.row}>
             <Input header="Present Val" setOnChange={() => {}} width={200} />
@@ -94,12 +89,13 @@ export default function FinancialCalculator() {
 
 const styles = StyleSheet.create({
   center: {
-    flex: 1,
+    // flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#F0F0F0"
   },
   outer: {
-    backgroundColor: "#0096FA",
+    backgroundColor: "#F0F0F0",
     borderColor: "black",
     borderStyle: "solid",
     borderWidth: 5,
