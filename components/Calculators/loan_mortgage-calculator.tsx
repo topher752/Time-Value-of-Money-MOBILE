@@ -1,13 +1,13 @@
+import React from "react";
 import {
+    Keyboard,
     StyleSheet,
     Text,
-    View,
-    Keyboard,
     TouchableWithoutFeedback,
-  } from "react-native";
-  import Input from "../input";
-  import React from "react";
-  import Button from "../button";
+    View,
+} from "react-native";
+import Button from "../button";
+import Input from "../input";
   
   export default function LoanMortgageCalculator() {
     return (

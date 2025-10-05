@@ -1,4 +1,8 @@
-import { StyleSheet, Text, Pressable } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text
+} from "react-native";
 
 type ButtonProps = {
   label: string;
