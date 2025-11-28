@@ -1,5 +1,4 @@
-import { View, Text, StyleSheet, Dimensions } from "react-native";
-import FinancialCalculator from "../components/Calculators/financial-calculator";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Calculator from "../components/calculator";
 import { ICalculatorRow } from "../components/types";

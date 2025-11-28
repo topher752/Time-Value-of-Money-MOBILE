@@ -1,13 +1,13 @@
+import React from "react";
 import {
+  Keyboard,
   StyleSheet,
   Text,
-  View,
-  Keyboard,
   TouchableWithoutFeedback,
+  View,
 } from "react-native";
-import Input from "./input";
-import React from "react";
 import Button from "./button";
+import Input from "./input";
 import { ICalculator, ICalculatorRow } from "./types";
 
 export default function Calculator({
@@ -26,7 +26,7 @@ export default function Calculator({
             <View style={styles.row}>
               <Text style={styles.headerText}>Computed Value:</Text>
               {computedValue !== "" && (
-                <View style={styles.pill}>{computedLabel}</View>
+                <View style={styles.pill}><Text>{computedLabel}</Text></View>
               )}
             </View>
             <Text
