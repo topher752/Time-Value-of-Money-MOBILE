@@ -1,13 +1,13 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from "react-native";
-import Input from "../input";
 import React from "react";
+import {
+    Keyboard,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
+} from "react-native";
 import Button from "../button";
+import Input from "../input";
 
 export default function FinancialCalculator() {
   return (

@@ -1,11 +1,7 @@
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Pressable
+    Pressable,
+    StyleSheet,
+    Text
 } from "react-native";
 
 type ButtonProps = {
