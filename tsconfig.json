@@ -3,14 +3,15 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
-    "allowImportingTsExtensions": true
+    // Node's native type stripping requires explicit .ts specifiers.
+    "allowImportingTsExtensions": true,
+    // SDK 57's base sets customConditions: ["react-native"], which stops
+    // @types/node resolving on its own. The test suite runs on node:test,
+    // and without this assert.ok() loses its assertion-function typing and
+    // stops narrowing SolveResult.
+    "types": ["node", "react"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }
