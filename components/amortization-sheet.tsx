@@ -101,11 +101,8 @@ export default function AmortizationSheet({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        style={styles.scrim}
-        onPress={onClose}
-        accessibilityLabel="Close amortization report"
-      >
+      {/* Tapping outside still dismisses, as the help card does. */}
+      <Pressable style={styles.scrim} onPress={onClose} accessible={false}>
         {/* Swallow taps so the card itself does not dismiss. */}
         <Pressable
           style={[
@@ -114,7 +111,18 @@ export default function AmortizationSheet({
           ]}
           onPress={() => {}}
         >
-          <Text style={styles.title}>Amortization Report</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Amortization Report</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close amortization report"
+              onPress={onClose}
+              hitSlop={12}
+              style={({ pressed }) => [styles.close, pressed && styles.closePressed]}
+            >
+              <MaterialIcons name="close" size={24} color={Colors.text} />
+            </Pressable>
+          </View>
 
           {schedule !== null && (
             <View style={styles.summary}>
@@ -171,10 +179,23 @@ const styles = StyleSheet.create({
     borderRadius: Sizing.helpCardRadius,
     backgroundColor: Colors.surface,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   title: {
+    flexShrink: 1,
     fontSize: FontSize.heading,
     fontWeight: FontWeight.bold,
     color: Colors.text,
+  },
+  close: {
+    padding: 2,
+  },
+  closePressed: {
+    opacity: 0.5,
   },
   summary: {
     flexDirection: "row",
