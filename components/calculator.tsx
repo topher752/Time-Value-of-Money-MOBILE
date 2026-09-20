@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
+  Dimensions,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -17,6 +18,9 @@ import Button from "./button";
 import Input from "./input";
 import KeyboardToolbar, { KEYBOARD_TOOLBAR_HEIGHT } from "./keyboard-toolbar";
 import Pill from "./pill";
+
+/** Breathing room left below a revealed field. */
+const REVEAL_MARGIN = 12;
 
 /** Either a single field, or the years+months pair sharing one button. */
 type Row =
@@ -75,28 +79,74 @@ export default function Calculator({
    * Keyboard navigation. Fields are declared in visual order, so that order
    * doubles as the tab order.
    *
-   * Which field has focus is deliberately a ref, not state: re-rendering
-   * while the keyboard is up detaches the iOS accessory view and the toolbar
-   * vanishes mid-edit. Nothing on screen depends on the focused field, so
-   * tracking it in a ref keeps the toolbar's props stable and it stays put.
+   * Which field has focus is a ref rather than state: nothing on screen
+   * depends on it, so there is no reason to re-render when it changes.
    */
   const inputRefs = useRef(new Map<FieldId, TextInput | null>());
   const focusedField = useRef<FieldId | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffset = useRef(0);
+  const keyboardHeight = useRef(0);
+
+  const keyboard = useKeyboard();
+
+  // Written in an effect, not during render.
+  useEffect(() => {
+    keyboardHeight.current = keyboard.height;
+  }, [keyboard.height]);
 
   const fieldOrder = useMemo(
     () => calculator.fields.map((f) => f.id),
     [calculator.fields],
   );
 
+  /*
+   * Bring a field into view above the keyboard.
+   *
+   * iOS scrolls a focused input clear of the keyboard on its own, but knows
+   * nothing about the toolbar sitting on top of it, so the field lands
+   * underneath and only its label stays visible. Scrolling is done here
+   * instead, measured against the keyboard height plus the toolbar.
+   */
+  const revealField = useCallback((id: FieldId | null) => {
+    const node = id === null ? null : inputRefs.current.get(id);
+    const scroll = scrollRef.current;
+    if (!node || !scroll) return;
+
+    node.measureInWindow((_x, y, _width, height) => {
+      // Everything below this line is covered by the toolbar and keyboard.
+      const coveredFrom =
+        Dimensions.get("window").height -
+        keyboardHeight.current -
+        KEYBOARD_TOOLBAR_HEIGHT;
+
+      const hidden = y + height + REVEAL_MARGIN - coveredFrom;
+      if (hidden > 0) {
+        scroll.scrollTo({ y: scrollOffset.current + hidden, animated: true });
+      }
+    });
+  }, []);
+
   const handleInputRef = useCallback((id: string, node: TextInput | null) => {
     inputRefs.current.set(id as FieldId, node);
   }, []);
 
-  const handleFieldFocus = useCallback((id: string) => {
-    focusedField.current = id as FieldId;
-  }, []);
+  const handleFieldFocus = useCallback(
+    (id: string) => {
+      focusedField.current = id as FieldId;
+      // Let layout settle before measuring.
+      setTimeout(() => revealField(id as FieldId), 50);
+    },
+    [revealField],
+  );
 
-  // Reads current focus from the ref, so its own identity never changes.
+  // Re-reveal when the keyboard appears or changes height.
+  useEffect(() => {
+    if (!keyboard.visible) return;
+    const timer = setTimeout(() => revealField(focusedField.current), 50);
+    return () => clearTimeout(timer);
+  }, [keyboard.visible, keyboard.height, revealField]);
+
   const moveFocus = useCallback((delta: number) => {
     const next = adjacentField(fieldOrder, focusedField.current, delta);
     if (next === null) return;
@@ -105,8 +155,6 @@ export default function Calculator({
 
   const goPrevious = useCallback(() => moveFocus(-1), [moveFocus]);
   const goNext = useCallback(() => moveFocus(1), [moveFocus]);
-
-  const keyboard = useKeyboard();
 
   const inputWidth = (field: FieldDef) => {
     if (field.width === "narrow") return styles.inputNarrow;
@@ -118,14 +166,21 @@ export default function Calculator({
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView
+          ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={[
             styles.content,
-            keyboard.visible && { paddingBottom: KEYBOARD_TOOLBAR_HEIGHT * 2 },
+            keyboard.visible && {
+              // Room to scroll the last field clear of keyboard and toolbar.
+              paddingBottom:
+                keyboard.height + KEYBOARD_TOOLBAR_HEIGHT + Spacing.screen,
+            },
           ]}
           keyboardShouldPersistTaps="handled"
-          // Keeps the focused field above the keyboard as focus moves.
-          automaticallyAdjustKeyboardInsets
+          onScroll={(event) => {
+            scrollOffset.current = event.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
         >
           {/* Status line: also the validation channel, as the original's #notes was. */}
           <Text style={styles.note}>{state.note}</Text>
