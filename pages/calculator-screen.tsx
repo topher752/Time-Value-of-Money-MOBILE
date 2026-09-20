@@ -3,14 +3,15 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AmortizationSheet from "../components/amortization-sheet";
 import Calculator from "../components/calculator";
 import Footer from "../components/footer";
 import HelpSheet from "../components/help-sheet";
-import NoticeSheet from "../components/notice-sheet";
 import ScreenHeader from "../components/screen-header";
 import { Colors } from "../constants/design";
 import { useCalculator } from "../hooks/use-calculator";
 import type { CalculatorDef } from "../lib/calculators";
+import type { AmortizationSchedule } from "../lib/tvm";
 
 /**
  * Header, rows-driven calculator, footer. Financial and Loan are both this
@@ -24,7 +25,7 @@ export default function CalculatorScreen({
   const navigation = useNavigation<DrawerNavigationProp<Record<string, undefined>>>();
   const controller = useCalculator(calculator);
   const [helpVisible, setHelpVisible] = useState(false);
-  const [amortVisible, setAmortVisible] = useState(false);
+  const [schedule, setSchedule] = useState<AmortizationSchedule | null>(null);
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -37,9 +38,11 @@ export default function CalculatorScreen({
       <Calculator
         calculator={calculator}
         controller={controller}
-        /* The schedule API is not identified yet, so acknowledge the tap.
-         * The data side is done: controller.buildSchedule() has the rows. */
-        onViewAmortization={() => setAmortVisible(true)}
+        /*
+         * Built on open rather than on every keystroke: a 1200-month term is
+         * a lot of rows to recompute for a button that may never be pressed.
+         */
+        onViewAmortization={() => setSchedule(controller.buildSchedule())}
       />
 
       <Footer />
@@ -50,11 +53,10 @@ export default function CalculatorScreen({
         onClose={() => setHelpVisible(false)}
       />
 
-      <NoticeSheet
-        visible={amortVisible}
-        title="Amortization"
-        message="The amortization schedule is still a work in progress. Check back soon."
-        onClose={() => setAmortVisible(false)}
+      <AmortizationSheet
+        visible={schedule !== null}
+        schedule={schedule}
+        onClose={() => setSchedule(null)}
       />
     </SafeAreaView>
   );
