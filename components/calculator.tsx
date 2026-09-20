@@ -1,17 +1,21 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   Keyboard,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Colors, FontSize, FontWeight, Sizing, Spacing } from "../constants/design";
-import type { CalculatorDef, FieldDef, TargetId } from "../lib/calculators";
+import type { CalculatorDef, FieldDef, FieldId, TargetId } from "../lib/calculators";
+import { adjacentField } from "../lib/field-navigation";
 import type { UseCalculator } from "../hooks/use-calculator";
+import { useKeyboard } from "../hooks/use-keyboard";
 import Button from "./button";
 import Input from "./input";
+import KeyboardToolbar, { KEYBOARD_TOOLBAR_HEIGHT } from "./keyboard-toolbar";
 import Pill from "./pill";
 
 /** Either a single field, or the years+months pair sharing one button. */
@@ -67,6 +71,43 @@ export default function Calculator({
   const rows = useMemo(() => toRows(calculator.fields), [calculator.fields]);
   const hasResult = computedValue !== "";
 
+  /*
+   * Keyboard navigation. Fields are declared in visual order, so that order
+   * doubles as the tab order.
+   *
+   * Which field has focus is deliberately a ref, not state: re-rendering
+   * while the keyboard is up detaches the iOS accessory view and the toolbar
+   * vanishes mid-edit. Nothing on screen depends on the focused field, so
+   * tracking it in a ref keeps the toolbar's props stable and it stays put.
+   */
+  const inputRefs = useRef(new Map<FieldId, TextInput | null>());
+  const focusedField = useRef<FieldId | null>(null);
+
+  const fieldOrder = useMemo(
+    () => calculator.fields.map((f) => f.id),
+    [calculator.fields],
+  );
+
+  const handleInputRef = useCallback((id: string, node: TextInput | null) => {
+    inputRefs.current.set(id as FieldId, node);
+  }, []);
+
+  const handleFieldFocus = useCallback((id: string) => {
+    focusedField.current = id as FieldId;
+  }, []);
+
+  // Reads current focus from the ref, so its own identity never changes.
+  const moveFocus = useCallback((delta: number) => {
+    const next = adjacentField(fieldOrder, focusedField.current, delta);
+    if (next === null) return;
+    inputRefs.current.get(next)?.focus();
+  }, [fieldOrder]);
+
+  const goPrevious = useCallback(() => moveFocus(-1), [moveFocus]);
+  const goNext = useCallback(() => moveFocus(1), [moveFocus]);
+
+  const keyboard = useKeyboard();
+
   const inputWidth = (field: FieldDef) => {
     if (field.width === "narrow") return styles.inputNarrow;
     if (field.width === "medium") return styles.inputMedium;
@@ -74,92 +115,115 @@ export default function Calculator({
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Status line: also the validation channel, as the original's #notes was. */}
-        <Text style={styles.note}>{state.note}</Text>
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            keyboard.visible && { paddingBottom: KEYBOARD_TOOLBAR_HEIGHT * 2 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          // Keeps the focused field above the keyboard as focus moves.
+          automaticallyAdjustKeyboardInsets
+        >
+          {/* Status line: also the validation channel, as the original's #notes was. */}
+          <Text style={styles.note}>{state.note}</Text>
 
-        <View style={styles.computedHeaderRow}>
-          <Text style={styles.computedHeader}>Computed Value:</Text>
-          {hasResult && <Pill label={computedLabel} />}
-        </View>
+          <View style={styles.computedHeaderRow}>
+            <Text style={styles.computedHeader}>Computed Value:</Text>
+            {hasResult && <Pill label={computedLabel} />}
+          </View>
 
-        <View style={styles.computedRow}>
-          <Text
-            style={[styles.computed, !hasResult && styles.computedEmpty]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {hasResult ? computedValue : "0"}
-          </Text>
-          <Button label="Reset" variant="action" onPress={reset} />
-        </View>
-
-        {rows.map((row) =>
-          row.kind === "term" ? (
-            <View key="term" style={styles.row}>
-              <Label field={row.years} />
-              <View style={styles.inputRow}>
-                <Input
-                  value={state.raw.years ?? ""}
-                  onChangeText={(value) => setField("years", value)}
-                  invalid={state.invalidField === "years"}
-                  style={styles.termInput}
-                  accessibilityLabel="Years"
-                />
-                <Text style={styles.termSeparator}>-</Text>
-                <Input
-                  value={state.raw.months ?? ""}
-                  onChangeText={(value) => setField("months", value)}
-                  invalid={state.invalidField === "months"}
-                  style={styles.termInput}
-                  accessibilityLabel="Months"
-                />
-                <Button
-                  label="Compute"
-                  onPress={() => compute("term")}
-                  accessibilityLabel="Compute term"
-                />
-              </View>
-            </View>
-          ) : (
-            <View
-              key={row.field.id}
-              style={[styles.row, row.field.indent === true && styles.indented]}
+          <View style={styles.computedRow}>
+            <Text
+              style={[styles.computed, !hasResult && styles.computedEmpty]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
             >
-              <Label field={row.field} />
-              <View style={styles.inputRow}>
-                <Input
-                  value={state.raw[row.field.id] ?? ""}
-                  onChangeText={(value) => setField(row.field.id, value)}
-                  invalid={state.invalidField === row.field.id}
-                  style={inputWidth(row.field)}
-                  accessibilityLabel={row.field.label}
-                />
-                {row.field.target !== null && (
+              {hasResult ? computedValue : "0"}
+            </Text>
+            <Button label="Reset" variant="action" onPress={reset} />
+          </View>
+
+          {rows.map((row) =>
+            row.kind === "term" ? (
+              <View key="term" style={styles.row}>
+                <Label field={row.years} />
+                <View style={styles.inputRow}>
+                  <Input
+                    value={state.raw.years ?? ""}
+                    onChangeText={(value) => setField("years", value)}
+                    invalid={state.invalidField === "years"}
+                    style={styles.termInput}
+                    accessibilityLabel="Years"
+                    fieldId="years"
+                    onInputRef={handleInputRef}
+                    onFieldFocus={handleFieldFocus}
+                  />
+                  <Text style={styles.termSeparator}>-</Text>
+                  <Input
+                    value={state.raw.months ?? ""}
+                    onChangeText={(value) => setField("months", value)}
+                    invalid={state.invalidField === "months"}
+                    style={styles.termInput}
+                    accessibilityLabel="Months"
+                    fieldId="months"
+                    onInputRef={handleInputRef}
+                    onFieldFocus={handleFieldFocus}
+                  />
                   <Button
                     label="Compute"
-                    onPress={() => compute(row.field.target as TargetId)}
-                    accessibilityLabel={`Compute ${row.field.label}`}
+                    onPress={() => compute("term")}
+                    accessibilityLabel="Compute term"
                   />
-                )}
+                </View>
               </View>
-            </View>
-          ),
-        )}
+            ) : (
+              <View
+                key={row.field.id}
+                style={[styles.row, row.field.indent === true && styles.indented]}
+              >
+                <Label field={row.field} />
+                <View style={styles.inputRow}>
+                  <Input
+                    value={state.raw[row.field.id] ?? ""}
+                    onChangeText={(value) => setField(row.field.id, value)}
+                    invalid={state.invalidField === row.field.id}
+                    style={inputWidth(row.field)}
+                    accessibilityLabel={row.field.label}
+                    fieldId={row.field.id}
+                    onInputRef={handleInputRef}
+                    onFieldFocus={handleFieldFocus}
+                  />
+                  {row.field.target !== null && (
+                    <Button
+                      label="Compute"
+                      onPress={() => compute(row.field.target as TargetId)}
+                      accessibilityLabel={`Compute ${row.field.label}`}
+                    />
+                  )}
+                </View>
+              </View>
+            ),
+          )}
 
-        <Button
-          label="View Amortization"
-          variant="action"
-          onPress={onViewAmortization}
-          style={styles.amortButton}
-        />
-      </ScrollView>
-    </TouchableWithoutFeedback>
+          <Button
+            label="View Amortization"
+            variant="action"
+            onPress={onViewAmortization}
+            style={styles.amortButton}
+          />
+        </ScrollView>
+      </TouchableWithoutFeedback>
+
+      <KeyboardToolbar
+        visible={keyboard.visible}
+        keyboardHeight={keyboard.height}
+        onPrevious={goPrevious}
+        onNext={goNext}
+      />
+    </>
   );
 }
 

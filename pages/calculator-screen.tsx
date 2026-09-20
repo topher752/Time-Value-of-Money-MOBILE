@@ -27,7 +27,7 @@ export default function CalculatorScreen({
   const [amortVisible, setAmortVisible] = useState(false);
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScreenHeader
         title={calculator.title}
         onMenuPress={() => navigation.openDrawer()}

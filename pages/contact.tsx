@@ -32,7 +32,7 @@ export default function ContactPage() {
   const submit = () => setNoticeVisible(true);
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScreenHeader title="Contact Us" onMenuPress={() => navigation.openDrawer()} />
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>

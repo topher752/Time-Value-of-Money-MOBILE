@@ -96,8 +96,13 @@ export const Sizing = {
   pillPaddingH: 15,
   pillPaddingV: 3,
 
-  menuIcon: 41,
-  helpIcon: 30,
+  /*
+   * The frames draw these at 41 and 30, which reads oversized on a real
+   * device -- the mockup's 430pt canvas is wider than most phones render.
+   * Scaled down; adjust here rather than at the call sites.
+   */
+  menuIcon: 28,
+  helpIcon: 24,
 
   helpCardRadius: 10,
   helpCardPadding: 20,

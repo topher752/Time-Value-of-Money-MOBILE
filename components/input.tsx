@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,6 +19,14 @@ type InputProps = {
   invalid?: boolean;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
+  /**
+   * Identifies this field to the parent's focus manager. Input owns the
+   * per-field closures so the parent can keep a single stable handler --
+   * building them upstream would mean creating ref closures during render.
+   */
+  fieldId?: string;
+  onInputRef?: (id: string, node: TextInput | null) => void;
+  onFieldFocus?: (id: string) => void;
 };
 
 /**
@@ -32,8 +41,22 @@ export default function Input({
   invalid = false,
   style,
   accessibilityLabel,
+  fieldId,
+  onInputRef,
+  onFieldFocus,
 }: InputProps) {
   const isEmpty = value === "";
+
+  const handleRef = useCallback(
+    (node: TextInput | null) => {
+      if (fieldId !== undefined) onInputRef?.(fieldId, node);
+    },
+    [fieldId, onInputRef],
+  );
+
+  const handleFocus = useCallback(() => {
+    if (fieldId !== undefined) onFieldFocus?.(fieldId);
+  }, [fieldId, onFieldFocus]);
 
   return (
     <View style={style}>
@@ -46,6 +69,8 @@ export default function Input({
         </Text>
       )}
       <TextInput
+        ref={handleRef}
+        onFocus={handleFocus}
         accessibilityLabel={accessibilityLabel ?? label}
         style={[
           styles.input,
