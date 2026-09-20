@@ -11,6 +11,22 @@ import ContactPage from "./pages/contact";
 
 const Drawer = createDrawerNavigator();
 
+/*
+ * Defined at module scope, not inline in the navigator.
+ *
+ * Passing children-as-a-function (or an inline component) to Drawer.Screen
+ * creates a new component identity on every render of App, so React
+ * Navigation remounts the screen -- discarding entered values and tearing
+ * down the keyboard accessory view attached to its inputs.
+ */
+function FinancialScreen() {
+  return <CalculatorScreen calculator={financialCalculator} />;
+}
+
+function LoanScreen() {
+  return <CalculatorScreen calculator={loanCalculator} />;
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -31,13 +47,17 @@ export default function App() {
             },
           }}
         >
-          <Drawer.Screen name="Financial" options={{ title: "Financial Calculator" }}>
-            {() => <CalculatorScreen calculator={financialCalculator} />}
-          </Drawer.Screen>
+          <Drawer.Screen
+            name="Financial"
+            component={FinancialScreen}
+            options={{ title: "Financial Calculator" }}
+          />
 
-          <Drawer.Screen name="Loan" options={{ title: "Loan & Mortgage Calculator" }}>
-            {() => <CalculatorScreen calculator={loanCalculator} />}
-          </Drawer.Screen>
+          <Drawer.Screen
+            name="Loan"
+            component={LoanScreen}
+            options={{ title: "Loan & Mortgage Calculator" }}
+          />
 
           <Drawer.Screen
             name="Contact"
