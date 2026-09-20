@@ -1,98 +1,250 @@
-import React from "react";
+import { useMemo } from "react";
 import {
   Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { Colors, FontSize, FontWeight, Sizing, Spacing } from "../constants/design";
+import type { CalculatorDef, FieldDef, TargetId } from "../lib/calculators";
+import type { UseCalculator } from "../hooks/use-calculator";
 import Button from "./button";
 import Input from "./input";
-import { ICalculator, ICalculatorRow } from "./types";
+import Pill from "./pill";
+
+/** Either a single field, or the years+months pair sharing one button. */
+type Row =
+  | { kind: "single"; field: FieldDef }
+  | { kind: "term"; years: FieldDef; months: FieldDef };
+
+/** Collapse the flat field list into renderable rows. */
+function toRows(fields: FieldDef[]): Row[] {
+  const rows: Row[] = [];
+  const termFields = fields.filter((f) => f.group === "term");
+
+  for (const field of fields) {
+    if (field.group === "term") {
+      // Emit the pair once, at the first term field's position.
+      if (field.id !== termFields[0]?.id) continue;
+      const years = termFields.find((f) => f.id === "years");
+      const months = termFields.find((f) => f.id === "months");
+      if (years && months) rows.push({ kind: "term", years, months });
+      continue;
+    }
+    rows.push({ kind: "single", field });
+  }
+
+  return rows;
+}
+
+function Label({ field }: { field: FieldDef }) {
+  return (
+    <Text style={styles.label}>
+      {field.label}
+      {field.secondaryLabel !== undefined && (
+        <Text style={styles.secondaryLabel}>{` ${field.secondaryLabel}`}</Text>
+      )}
+    </Text>
+  );
+}
+
+type CalculatorProps = {
+  calculator: CalculatorDef;
+  controller: UseCalculator;
+  onViewAmortization: () => void;
+};
 
 export default function Calculator({
-  rows,
-  computedValue,
-  computedLabel,
-  resetFunction,
-  viewAmortizationFunction,
-  viewAmortization = false,
-}: ICalculator) {
+  calculator,
+  controller,
+  onViewAmortization,
+}: CalculatorProps) {
+  const { state, setField, compute, reset, computedValue, computedLabel } =
+    controller;
+
+  const rows = useMemo(() => toRows(calculator.fields), [calculator.fields]);
+  const hasResult = computedValue !== "";
+
+  const inputWidth = (field: FieldDef) => {
+    if (field.width === "narrow") return styles.inputNarrow;
+    if (field.width === "medium") return styles.inputMedium;
+    return styles.inputFull;
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.column}>
-        <View style={styles.row}>
-          <View style={styles.column}>
-            <View style={styles.row}>
-              <Text style={styles.headerText}>Computed Value:</Text>
-              {computedValue !== "" && (
-                <View style={styles.pill}><Text>{computedLabel}</Text></View>
-              )}
-            </View>
-            <Text
-              style={computedValue !== "" ? styles.computed : styles.uncomputed}
-            >
-              {computedValue !== "" ? computedValue : 0}
-            </Text>
-          </View>
-          <Button label="Reset" onPress={resetFunction} theme="secondary" />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Status line: also the validation channel, as the original's #notes was. */}
+        <Text style={styles.note}>{state.note}</Text>
+
+        <View style={styles.computedHeaderRow}>
+          <Text style={styles.computedHeader}>Computed Value:</Text>
+          {hasResult && <Pill label={computedLabel} />}
         </View>
-        {rows.map((rowItem: ICalculatorRow) => (
-          <View style={styles.row} key={rowItem.header}>
-            <Input
-              header={rowItem.header}
-              setOnChange={rowItem.setInputChange}
-              width={250}
-            />
-            <View style={{ marginTop: 15 }}>
-              <Button
-                label="Compute"
-                theme="primary"
-                onPress={rowItem.calculateFunction}
-              />
+
+        <View style={styles.computedRow}>
+          <Text
+            style={[styles.computed, !hasResult && styles.computedEmpty]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {hasResult ? computedValue : "0"}
+          </Text>
+          <Button label="Reset" variant="action" onPress={reset} />
+        </View>
+
+        {rows.map((row) =>
+          row.kind === "term" ? (
+            <View key="term" style={styles.row}>
+              <Label field={row.years} />
+              <View style={styles.inputRow}>
+                <Input
+                  value={state.raw.years ?? ""}
+                  onChangeText={(value) => setField("years", value)}
+                  invalid={state.invalidField === "years"}
+                  style={styles.termInput}
+                  accessibilityLabel="Years"
+                />
+                <Text style={styles.termSeparator}>-</Text>
+                <Input
+                  value={state.raw.months ?? ""}
+                  onChangeText={(value) => setField("months", value)}
+                  invalid={state.invalidField === "months"}
+                  style={styles.termInput}
+                  accessibilityLabel="Months"
+                />
+                <Button
+                  label="Compute"
+                  onPress={() => compute("term")}
+                  accessibilityLabel="Compute term"
+                />
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ) : (
+            <View
+              key={row.field.id}
+              style={[styles.row, row.field.indent === true && styles.indented]}
+            >
+              <Label field={row.field} />
+              <View style={styles.inputRow}>
+                <Input
+                  value={state.raw[row.field.id] ?? ""}
+                  onChangeText={(value) => setField(row.field.id, value)}
+                  invalid={state.invalidField === row.field.id}
+                  style={inputWidth(row.field)}
+                  accessibilityLabel={row.field.label}
+                />
+                {row.field.target !== null && (
+                  <Button
+                    label="Compute"
+                    onPress={() => compute(row.field.target as TargetId)}
+                    accessibilityLabel={`Compute ${row.field.label}`}
+                  />
+                )}
+              </View>
+            </View>
+          ),
+        )}
+
+        <Button
+          label="View Amortization"
+          variant="action"
+          onPress={onViewAmortization}
+          style={styles.amortButton}
+        />
+      </ScrollView>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  column: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 25,
+  scroll: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  row: {
+  content: {
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.screen,
+    paddingBottom: Spacing.screen * 2,
+  },
+  note: {
+    fontSize: FontSize.body,
+    color: Colors.text,
+    marginBottom: Spacing.rowStack,
+  },
+  computedHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  computedHeader: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
+    color: Colors.text,
+  },
+  computedRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 16,
-  },
-  headerText: {
-    fontWeight: "bold",
-    color: "#212121",
-    fontSize: 18,
-  },
-  uncomputed: {
-    fontSize: 40,
-    color: "#212121",
-    fontWeight: "bold",
-    fontStyle: "italic",
+    gap: Spacing.rowGap,
+    marginBottom: Spacing.rowStack,
   },
   computed: {
-    fontSize: 40,
-    color: "#874BFF",
-    fontWeight: "bold",
-    fontStyle: "normal",
+    flexShrink: 1,
+    fontSize: FontSize.display,
+    fontWeight: FontWeight.bold,
+    color: Colors.computed,
   },
-  pill: {
-    padding: 10,
-    color: "#9AFF9D",
-    fontSize: 14,
-    fontWeight: "bold",
-    borderRadius: 100,
+  computedEmpty: {
+    color: Colors.textMuted,
+    fontStyle: "italic",
+  },
+  row: {
+    marginBottom: Spacing.rowStack,
+  },
+  indented: {
+    marginLeft: Spacing.indent,
+  },
+  label: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
+    color: Colors.text,
+    marginBottom: Spacing.labelGap,
+  },
+  secondaryLabel: {
+    color: Colors.textHint,
+    fontStyle: "italic",
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.rowGap,
+  },
+  inputFull: {
+    flex: 1,
+  },
+  inputNarrow: {
+    width: Sizing.narrowInputWidth,
+  },
+  inputMedium: {
+    width: Sizing.mediumInputWidth,
+  },
+  termInput: {
+    flex: 1,
+  },
+  termSeparator: {
+    fontSize: FontSize.body,
+    fontWeight: FontWeight.bold,
+    color: Colors.text,
+    marginHorizontal: -4,
+  },
+  amortButton: {
+    alignSelf: "flex-start",
   },
 });
