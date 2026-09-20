@@ -303,36 +303,41 @@ export const financialCalculator: CalculatorDef = {
 
   helpContent: {
     title: "Financial Calculator Assistance",
-    intro: "There are 5 Values that can be entered:",
+    intro: "There are 6 values that can be entered:",
     items: [
       {
-        term: "Present Value",
+        term: "Present Val",
         description:
-          "Here is where you would enter the present value, or in simpler terms, the initial investment",
+          "The present value, or in simpler terms, the initial investment",
       },
       {
         term: "Interest Rate",
         description:
-          "Enter the interest as a percentage, from -100 to 100. As an example, to show a 3.5 perfect rate, you would enter 3.5",
+          "The interest as a percentage, from -100 to 100. For example, to enter a 3.5 percent rate, you would enter 3.5",
       },
       {
         term: "Term",
         description:
-          "Your term is your Loan Rate, where you enter any legitimate combination of years and months",
+          "The length of time, entered as any legitimate combination of years and months",
+      },
+      {
+        term: "Mo. +Dep/-Draw",
+        description:
+          "Your monthly deposit or withdrawal. Enter a positive value to deposit each month, or a negative value to withdraw",
       },
       {
         term: "Inflation Adjustment",
         description:
-          "Enter your payment/Withdraw yearly adjustment. As an example, you would enter 3 for 3%",
+          "A yearly adjustment to the deposit or withdrawal above. For example, enter 3 for 3%",
       },
       {
-        term: "Future Value",
+        term: "Future Val",
         description:
-          "Here you would enter the future/ending value, which can be positive or negative.",
+          "The future or ending value, which can be positive or negative",
       },
     ],
     closing:
-      "After selecting one of the compute buttons, it will calculate that value within the same row in accordance to the rest of the values entered. If there is no value presented, it will automatically become 0 and presented at the top with Computed Value",
+      "Fill in every value except the one you want, then press Compute next to it. That field is filled in from the others, and the result also appears at the top under Computed Value. Any field left blank counts as 0.",
   },
 
   solve(target, values) {
@@ -408,29 +413,29 @@ export const loanCalculator: CalculatorDef = {
 
   helpContent: {
     title: "Loan and Mortgage Calculator Assistance",
-    intro: "There are 4 Values that can be entered:",
+    intro: "There are 4 values that can be entered:",
     items: [
       {
         term: "Loan Amount",
-        description: "Here is where you would enter the loan amount",
+        description: "The total amount being borrowed",
       },
       {
-        term: "Interest Rate",
+        term: "Rate",
         description:
-          "Enter the interest as a percentage, from -100 to 100. As an example, to show a 3.5 perfect rate, you would enter 3.5",
+          "The interest as a percentage, from -100 to 100. For example, to enter a 3.5 percent rate, you would enter 3.5",
       },
       {
         term: "Term",
         description:
-          "Your term is your Loan Rate, where you enter any legitimate combination of years and months",
+          "The length of the loan, entered as any legitimate combination of years and months",
       },
       {
-        term: "Mortgage Payment",
-        description: "This is where you enter the monthly payment greater than 0",
+        term: "Payment",
+        description: "The monthly payment, which must be greater than 0",
       },
     ],
     closing:
-      "After selecting one of the compute buttons, it will calculate that value within the same row in accordance to the rest of the values entered. If there is no value presented, it will automatically become 0 and presented at the top with Computed Value",
+      "Fill in every value except the one you want, then press Compute next to it. That field is filled in from the others, and the result also appears at the top under Computed Value. Any field left blank counts as 0.",
   },
 
   solve(target, values) {
