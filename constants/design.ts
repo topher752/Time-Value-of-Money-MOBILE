@@ -25,6 +25,9 @@ export const Colors = {
   /** The computed headline, once a result exists. */
   computed: "#874BFF",
 
+  /** Amortization column headings. The same blue as the input borders. */
+  tableHeader: "#599BD9",
+
   /** Header separator and footer background. */
   divider: "#D9D9D9",
   link: "#3853FF",
