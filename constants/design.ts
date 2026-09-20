@@ -104,5 +104,5 @@ export const Sizing = {
 } as const;
 
 /** Footer link target. */
-export const SITE_URL = "https://espacetheraterace.com";
-export const SITE_LABEL = "espacetheraterace.com";
+export const SITE_URL = "https://escapetheraterace.com";
+export const SITE_LABEL = "escapetheraterace.com";
