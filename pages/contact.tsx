@@ -1,6 +1,6 @@
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
-import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useCallback, useState } from "react";
 import {
   Keyboard,
   ScrollView,
@@ -10,11 +10,10 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Button from "../components/button";
 import Footer from "../components/footer";
 import NoticeSheet from "../components/notice-sheet";
 import ScreenHeader from "../components/screen-header";
-import { Colors, FontSize, FontWeight, Sizing, Spacing } from "../constants/design";
+import { Colors, FontSize, FontWeight, SITE_LABEL, Sizing, Spacing } from "../constants/design";
 
 const INTRO =
   "Please let us know if you have any questions on our Free Retirement " +
@@ -25,11 +24,22 @@ const INTRO =
 export default function ContactPage() {
   const navigation = useNavigation<DrawerNavigationProp<Record<string, undefined>>>();
   const [message, setMessage] = useState("");
-  const [noticeVisible, setNoticeVisible] = useState(false);
+  const [noticeVisible, setNoticeVisible] = useState(true);
 
-  /* The design specifies the form but not where it posts. The message stays
-   * in the field so nothing the user wrote is thrown away. */
-  const submit = () => setNoticeVisible(true);
+  /*
+   * The notice is raised on arrival rather than on submit. There is nowhere
+   * for the form to post yet, and letting someone compose a message and press
+   * Submit only to be told it goes nowhere wastes their effort. Saying so up
+   * front costs them one tap instead.
+   *
+   * useFocusEffect rather than mount: the drawer keeps screens mounted, so an
+   * effect on mount would only ever fire once per session.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      setNoticeVisible(true);
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -56,7 +66,11 @@ export default function ContactPage() {
             textAlignVertical="top"
           />
 
-          <Button label="Submit Message" onPress={submit} style={styles.submit} />
+          {/*
+            No Submit button while there is no destination: a control that
+            cannot do its job is worse than its absence. The field is left
+            editable so the screen still reads as the designed form.
+          */}
         </ScrollView>
       </TouchableWithoutFeedback>
 
@@ -65,7 +79,11 @@ export default function ContactPage() {
       <NoticeSheet
         visible={noticeVisible}
         title="Contact Us"
-        message="Message sending is still a work in progress. Check back soon."
+        message={
+          "Sending messages from the app is still a work in progress, so this " +
+          "form is not connected yet. In the meantime you can reach us at " +
+          `${SITE_LABEL}.`
+        }
         onClose={() => setNoticeVisible(false)}
       />
     </SafeAreaView>
@@ -116,9 +134,5 @@ const styles = StyleSheet.create({
   },
   inputEmpty: {
     fontStyle: "italic",
-  },
-  submit: {
-    alignSelf: "flex-end",
-    marginTop: Spacing.rowStack,
   },
 });
