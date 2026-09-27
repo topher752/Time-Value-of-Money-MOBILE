@@ -31,9 +31,9 @@ const MONTH_WIDTH = 70;
  * from the top of a 430x932 canvas, which on a real device is underneath the
  * status bar and the notch.
  *
- * Figures are real -- buildAmortizationSchedule reproduces the original
- * calculator's own reporting output row for row -- but where the schedule
- * should come from in the finished app is unsettled, so the card says so.
+ * Figures come from the values on the calculator screen --
+ * buildAmortizationSchedule reproduces the original calculator's own
+ * reporting output row for row.
  */
 export default function AmortizationSheet({
   visible,
@@ -134,11 +134,6 @@ export default function AmortizationSheet({
             </View>
           )}
 
-          <Text style={styles.demoNote}>
-            Demo data — how this is produced in the finished app is still being
-            worked out.
-          </Text>
-
           <View style={styles.rule} />
 
           <View style={styles.headerRow}>
@@ -208,11 +203,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: Colors.computed,
     flexShrink: 1,
-  },
-  demoNote: {
-    fontSize: 13,
-    color: Colors.textHint,
-    marginTop: 10,
   },
   rule: {
     height: 1,
